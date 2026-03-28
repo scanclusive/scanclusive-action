@@ -1,0 +1,64 @@
+name: "ScanClusive Accessibility Scan"
+description: "Run a WCAG accessibility scan via ScanClusive and get compliance results"
+branding:
+  icon: "shield"
+  color: "blue"
+
+inputs:
+  api-key:
+    description: "ScanClusive API key (from Settings > API Keys)"
+    required: true
+  project-id:
+    description: "ScanClusive project ID"
+    required: true
+  api-url:
+    description: "ScanClusive API base URL"
+    required: false
+    default: "https://scanclusive.com"
+  threshold:
+    description: "Minimum compliance score (0-100). Pipeline fails if score is below this."
+    required: false
+    default: "0"
+  fail-on-violations:
+    description: "Fail the pipeline if any critical violations are found"
+    required: false
+    default: "false"
+  wait-timeout:
+    description: "Max seconds to wait for scan completion"
+    required: false
+    default: "600"
+
+outputs:
+  scan-id:
+    description: "The ID of the created scan"
+    value: ${{ steps.scan.outputs.scan-id }}
+  compliance-score:
+    description: "The compliance score (0-100)"
+    value: ${{ steps.scan.outputs.compliance-score }}
+  total-violations:
+    description: "Total number of violations found"
+    value: ${{ steps.scan.outputs.total-violations }}
+  critical-count:
+    description: "Number of critical violations"
+    value: ${{ steps.scan.outputs.critical-count }}
+  status:
+    description: "Final scan status"
+    value: ${{ steps.scan.outputs.status }}
+  report-url:
+    description: "URL to the full scan report"
+    value: ${{ steps.scan.outputs.report-url }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run ScanClusive Scan
+      id: scan
+      shell: bash
+      env:
+        SCANCLUSIVE_API_KEY: ${{ inputs.api-key }}
+        SCANCLUSIVE_PROJECT_ID: ${{ inputs.project-id }}
+        SCANCLUSIVE_API_URL: ${{ inputs.api-url }}
+        SCANCLUSIVE_THRESHOLD: ${{ inputs.threshold }}
+        SCANCLUSIVE_FAIL_ON_VIOLATIONS: ${{ inputs.fail-on-violations }}
+        SCANCLUSIVE_WAIT_TIMEOUT: ${{ inputs.wait-timeout }}
+      run: node "${{ github.action_path }}/index.js"
